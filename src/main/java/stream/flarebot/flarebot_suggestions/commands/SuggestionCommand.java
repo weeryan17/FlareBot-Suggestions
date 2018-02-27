@@ -5,14 +5,17 @@ import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageChannel;
 import net.dv8tion.jda.core.entities.User;
+import stream.flarebot.flarebot_suggestions.Constants;
 import stream.flarebot.flarebot_suggestions.DatabaseManager;
 import stream.flarebot.flarebot_suggestions.Suggestion;
 import stream.flarebot.flarebot_suggestions.SuggestionsManager;
 
-public class VoteCommand implements Command {
+public class SuggestionCommand implements Command {
 
     @Override
     public void onCommand(User user, MessageChannel channel, Message message, String[] args, Member member) {
+        if (channel.getIdLong() == Constants.SUGGESTIONS_CHANNEL) return;
+
         if (args.length == 1) {
             int id;
             try {
@@ -24,28 +27,23 @@ public class VoteCommand implements Command {
 
             Suggestion s = DatabaseManager.getSuggestion(id);
             if (s != null) {
-                if (s.getVotedUsers().contains(user.getIdLong())) {
-                    channel.sendMessage(user.getAsMention() + " You can't vote twice you silly goose!").queue();
-                } else {
-                    SuggestionsManager.getInstance().voteOnSuggestion(id, user.getIdLong());
-                    channel.sendMessage(user.getAsMention() + " You have voted for suggestion #" + id).queue();
-                }
+                channel.sendMessage(SuggestionsManager.getInstance().getSuggestionEmbed(s).build()).queue();
             } else {
                 channel.sendMessage(user.getAsMention() + " Invalid suggestion ID! Please refer to the number at the start of the title in " +
                         "the suggestion embed").queue();
             }
         } else
-            channel.sendMessage(user.getAsMention() + " **Usage**: `vote <id>`").queue();
+            channel.sendMessage(user.getAsMention() + " **Usage**: `suggestion <id>`").queue();
     }
 
     @Override
     public String getCommand() {
-        return "vote";
+        return "suggestion";
     }
 
     @Override
     public String getDescription() {
-        return "Vote on a suggestion";
+        return "Get a suggestion";
     }
 
     @Override
